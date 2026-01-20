@@ -1,9 +1,8 @@
-package com.sandeep.loadOptimizer;
+package com.sandeep.loadoptimizer.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sandeep.loadOptimizer.dto.TruckLoadResponse;
-import com.sandeep.loadOptimizer.dto.TruckOrderRequest;
-import com.sandeep.loadOptimizer.service.LoadOptimizerService;
+import com.sandeep.loadoptimizer.dto.TruckLoadResponse;
+import com.sandeep.loadoptimizer.dto.TruckOrderRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 

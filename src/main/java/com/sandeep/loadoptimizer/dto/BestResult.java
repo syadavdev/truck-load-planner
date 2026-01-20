@@ -1,4 +1,4 @@
-package com.sandeep.loadOptimizer.dto;
+package com.sandeep.loadoptimizer.dto;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,6 +1,9 @@
-package com.sandeep.loadOptimizer.service;
+package com.sandeep.loadoptimizer.service;
 
-import com.sandeep.loadOptimizer.dto.*;
+import com.sandeep.loadoptimizer.dto.BestResult;
+import com.sandeep.loadoptimizer.dto.Order;
+import com.sandeep.loadoptimizer.dto.Truck;
+import com.sandeep.loadoptimizer.dto.TruckLoadResponse;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -12,7 +15,7 @@ import java.util.stream.Collectors;
 @Service
 public class LoadOptimizerService {
 
-    public TruckLoadResponse optimize(Truck truck, List<Order> allOrders) {
+    public TruckLoadResponse optimize(Truck truck, List<Order> allOrders) throws InterruptedException {
         //1.Group by Lane
         Map<String, List<Order>> ordersByLane = allOrders.stream()
                 .filter(o -> !LocalDate.parse(o.pickupDate()).isAfter(LocalDate.parse(o.deliveryDate())))
@@ -49,6 +52,9 @@ public class LoadOptimizerService {
         return globalBestResponse;
     }
 
+    /**
+     * Recursive backtracking with bit-masking
+     */
     private void solveByBacktracking(int idx,
                                      int weight,
                                      int volume,
@@ -57,7 +63,10 @@ public class LoadOptimizerService {
                                      List<Order> orders,
                                      Truck truck,
                                      long[] suffix,
-                                     BestResult best) {
+                                     BestResult best) throws InterruptedException {
+
+        //if controller reached timeout limit
+        if (Thread.currentThread().isInterrupted()) throw new RuntimeException("Timeout");
 
         //Checking against pre-calculated values
         if (payout > best.getPayout()) {
@@ -86,6 +95,10 @@ public class LoadOptimizerService {
         solveByBacktracking(idx + 1, weight, volume, payout, mask, orders, truck, suffix, best);
     }
 
+
+    /**
+     * Pre-calculating payouts at each index
+     */
     private long[] getSuffixSums(List<Order> orders) {
         long[] suffix = new long[orders.size() + 1];
         for (int i = orders.size() - 1; i >= 0; i--) {
@@ -94,6 +107,10 @@ public class LoadOptimizerService {
         return suffix;
     }
 
+
+    /**
+     * Just building response with mask
+     */
     private TruckLoadResponse buildResponse(Truck truck, List<Order> orders, BestResult best) {
         List<String> selectedIds = new ArrayList<>();
         //Selecting Ids of order which are in bit-mask variable
@@ -103,8 +120,8 @@ public class LoadOptimizerService {
             }
         }
 
-        double wUtil = truck.maxWeightLbs() == 0 ? 0 : (double) best.getWeight() / truck.maxWeightLbs() * 100.0;
-        double vUtil = truck.maxVolumeCuft() == 0 ? 0 : (double) best.getVolume() / truck.maxVolumeCuft() * 100.0;
+        double wUtil = (double) best.getWeight() / truck.maxWeightLbs() * 100.0;
+        double vUtil = (double) best.getVolume() / truck.maxVolumeCuft() * 100.0;
 
         return new TruckLoadResponse(
                 truck.id(), selectedIds, Math.max(0, best.getPayout()), best.getWeight(), best.getVolume(),

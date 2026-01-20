@@ -1,4 +1,4 @@
-package com.sandeep.loadOptimizer;
+package com.sandeep.loadoptimizer;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
